@@ -23,6 +23,7 @@ body {
   color: #5a3e2b;
   font-family: "Quicksand";
   font-weight: 500;
+  padding: 0px;
 }
 
 .app {
@@ -34,7 +35,7 @@ body {
 
 h1 {
   text-align: center;
-  background-color: #f4a226;
+  background-color: #7eed92;
   font-family: "Monoton";
   font-size: 8rem;
   text-transform: uppercase;
@@ -45,7 +46,7 @@ h1 {
 }
 
 .add-form {
-  background-color: #e5771f;
+  background-color: #4a9257;
   padding: 2.8rem 0;
   display: flex;
   align-items: center;
@@ -61,8 +62,8 @@ h3 {
 button,
 select,
 input {
-  background-color: #ffebb3;
-  color: #5a3e2b;
+  background-color: #b3ffc0;
+  color: #30703c;
   font-family: inherit;
   border: none;
   border-radius: 10rem;
@@ -78,7 +79,7 @@ input {
 }
 
 .list {
-  background-color: #5a3e2b;
+  background-color: #48a85a;
   color: #ffebb3;
   padding: 4rem 0;
 
@@ -101,7 +102,6 @@ input {
 .list ul {
   list-style: none;
   width: 80%;
-  overflow: scroll;
 
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -132,7 +132,7 @@ input[type="checkbox"] {
 }
 
 .stats {
-  background-color: #76c7ad;
+  background-color: #7eed92;
   text-align: center;
   font-weight: 700;
   padding: 3.2rem 0;
