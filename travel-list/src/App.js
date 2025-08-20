@@ -1,73 +1,108 @@
 import { useState } from "react";
 
-const questions = [
-  {
-    id: 3457,
-    question: "What language is React based on?",
-    answer: "JavaScript"
-  },
-  {
-    id: 7336,
-    question: "What are the building blocks of React apps?",
-    answer: "Components"
-  },
-  {
-    id: 8832,
-    question: "What's the name of the syntax we use to describe a UI in React?",
-    answer: "JSX"
-  },
-  {
-    id: 1297,
-    question: "How to pass data from parent to child components?",
-    answer: "Props"
-  },
-  {
-    id: 9103,
-    question: "How to give components memory?",
-    answer: "useState hook"
-  },
-  {
-    id: 2002,
-    question:
-      "What do we call an input element that is completely synchronised with state?",
-    answer: "Controlled element"
-  }
-];
-
-
 function App(){
+  const [items, setItems] = useState([]);
+
+  const handleAddItems = (item) =>{
+    setItems((items)=>[...items, item]);
+  }
+
+  const handleDeleteItem = (id) =>{
+    setItems(items=>items.filter(item=>item.id !==id))
+  }
+
+  const handleToggleItem = (id) =>{
+    setItems(items => items.map(item => item.id === id ? {...item, packed: !item.packed} : item));
+  }
+
   return (
     <div className="app">
-      <FlashCard/>
+      <Logo/>
+      <Form onAddItems={handleAddItems} />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleToggleItem} />
+      <States/>
     </div>
   )
 }
 
 
-function FlashCard(){
+function Logo(){
+  return (
+    <h1>🌿Far Away</h1>
+  )
 
-  const [selectedId, setSelectedId] = useState(null);
+}
 
-  const handleCard = (id) =>{
-    setSelectedId(id !== selectedId ? id : "");
+function Form({onAddItems}){
+  const [description, setDescription] = useState("")
+  const [quantity, setQuantity] = useState(1);
+  
+
+  
+
+  const handleSubmit =(e)=>{
+    e.preventDefault();
+    if(!description) return
+    const newItem = {description, quantity, packed:false, id: Date.now() }
+    console.log(newItem);
+    onAddItems(newItem);
+
+
+
+    setDescription("");
+    setQuantity(1);
   }
 
-  return(
-    <div className="flashcards">
-      {questions.map((question)=>(
-        <div
-          key={question.id}
-          onClick={(e) => handleCard(question.id)}
-          className={question.id === selectedId ? "selected" : ""}
-        >
-          <p>{question.id === selectedId ? question.answer : question.question}</p>
-        </div>
-      ))}
+
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select value={quantity} onChange={(e)=> setQuantity(Number(e.target.value))}>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>{num}</option>
+        ))}
+      </select>
+
+      <input type="text" placeholder="Item...." value={description} onChange={(e) => setDescription(e.target.value) }  />
+      <button>Add</button>
+    </form>
+  );
+}
+
+function PackingList({items, onDeleteItem, onToggleItem}){
+
+  return (
+    <div className="list">
+      <ul>
+        {items.map(item=>
+          <Item item={item} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem} key={item.id} />
+        )}
+      </ul>
     </div>
+    
+  );
+}
+
+function Item({ item, onDeleteItem, onToggleItem }){
+  console.log(item);
+  return (
+    <li style={{overflow:"hidden"}}>
+      <input type="checkbox" value={item.packed} onChange={()=>{onToggleItem(item.id)}} />
+      <span style={item.packed ? {textDecoration:"line-through"} : {}}>{item.quantity} {item.description}</span>
+      <button style={{overflow:"hidden"}} onClick={() => onDeleteItem(item.id)}>❌</button>
+    </li>
   );
 }
 
 
+
+function States(){
+  return (
+    <footer className="stats">
+      <em>You have X item in your list, Already packed X (X%)</em>
+    </footer>
+  );
+}
 
 
 
