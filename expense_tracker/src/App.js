@@ -11,15 +11,6 @@ const initialExpenseCategory = [
     status: "active",
   },
   {
-    id: 9965665,
-    name: "Vegetable",
-    max_limit: 3000,
-    image: "https://ui-avatars.com/api/?name=Vegetable&size=48",
-    total_expense: 500,
-    current_amount: 2500,
-    status: "active",
-  },
-  {
     id: 546661,
     name: "Nuts",
     max_limit: 2000,
@@ -27,15 +18,6 @@ const initialExpenseCategory = [
     total_expense: 1500,
     current_amount: 500,
     status: "disable",
-  },
-  {
-    id: 5645641,
-    name: "Spices",
-    max_limit: 5000,
-    image: "https://i.pravatar.cc/48?u=118836",
-    total_expense: 5500,
-    current_amount: -500,
-    status: "active",
   },
   {
     id: 9855445,
@@ -48,11 +30,7 @@ const initialExpenseCategory = [
   },	
 ];
 
-function Button({children, handleButton}){
-  return(
-    <button className="button" onClick={handleButton}>{children}</button>
-  );
-}
+
 
 function ModalHeaderControl({children, handleModule, modalFor}){
   return(
@@ -71,6 +49,8 @@ export default function App(){
   const [catModuleControl, setCatModuleControl] = useState(false);
   const [catDetModuleControl, setCatDetModuleControl] = useState(false);
   const [expDetModule, setExpDetModule] = useState(false);
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [catrgoriesList, setCategoriesList] = useState(initialExpenseCategory);
 
   function handleModule(cardtype){
     //console.log(cardtype);
@@ -83,23 +63,49 @@ export default function App(){
     }
   }
 
-  function handleButton(actionFrom){
+  function handleButton(actionFrom, id){
     setCatDetModuleControl(false);
     setCatModuleControl((show)=> !show);
     setExpDetModule(false);
+    setSelectedCatId(null)
   }
 
-  function handleCategoryDetails(){
+  function handleCategoryDetails(categoryId){
     setCatDetModuleControl(true);
     setCatModuleControl(false);
     setExpDetModule(false);
+    setSelectedCatId(categoryId);
   }
 
-  function handleExpenseForm(){
+  function handleExpenseForm(categoryId){
     setExpDetModule((show)=> !show);
     setCatDetModuleControl(false);
     setCatModuleControl(false);
+    setSelectedCatId(categoryId);
   }
+
+  function handleCategories(category) {
+    setCategoriesList(catrgoriesList=>[...catrgoriesList, category]);
+  }
+
+  function handleTotalExpanse(value) {
+  setCategoriesList(prevList =>
+    prevList.map(category =>
+      category.id === selectedCatId
+        ? {
+            ...category,
+            total_expense: value.total_expense,
+            current_amount: value.rem_amount,
+          }
+        : category
+    )
+  );
+
+  setExpDetModule(false);
+
+  //setSelectedCatId(null);
+}
+
 
   return(
     <div className="app">
@@ -110,25 +116,38 @@ export default function App(){
           catModuleControl     = {catModuleControl}
           handleExpenseForm    = {handleExpenseForm}
           expDetModule         = {expDetModule}
+          originalCategoryList = {catrgoriesList}
+          selectedCatId = {selectedCatId}
         />
 
 
-        {catModuleControl && <FormAddCategory handleModule={handleModule}/>}
-        {catDetModuleControl && <CategoryDetails handleModule={handleModule}/>}
+        {catModuleControl && <FormAddCategory handleModule={handleModule} categoryAddHandle={handleCategories}/>}
+        {catDetModuleControl && <CategoryDetails 
+          handleModule={handleModule} 
+          categoryDetailsId={selectedCatId} 
+          catrgoriesList = {catrgoriesList}
+        />}
       </div>
-      {expDetModule && <ExDetailsForm/>}
+      {expDetModule && <ExDetailsForm selectedCatId={selectedCatId} catrgoriesList = {catrgoriesList} handleTotalExpanse={handleTotalExpanse} />}
     </div>
   );
 }
 
-function ExCategoryList({handleButton, catModuleControl, handleCategoryDetails, handleExpenseForm, expDetModule}){
-  const categoryList = initialExpenseCategory;
+function ExCategoryList({handleButton, catModuleControl, handleCategoryDetails, handleExpenseForm, expDetModule, originalCategoryList, selectedCatId}){
+  const categoryList = originalCategoryList;
   return(
     <>
     <h3>Expense Category List</h3>
     <ul>
       {categoryList.map((category)=>(
-        <ExCategory category={category} handleCategoryDetails={handleCategoryDetails} handleExpenseForm={handleExpenseForm} expDetModule={expDetModule}/>
+        <ExCategory 
+          category={category} 
+          handleCategoryDetails={handleCategoryDetails} 
+          selectedCatId={selectedCatId} 
+          handleExpenseForm={handleExpenseForm} 
+          expDetModule={expDetModule} 
+          key={category.id}
+        />
       ))}
       
     </ul>
@@ -137,11 +156,20 @@ function ExCategoryList({handleButton, catModuleControl, handleCategoryDetails, 
   );
 }
 
-function ExCategory({category, handleCategoryDetails, handleExpenseForm, expDetModule}){
+
+function Button({children, handleButton, categoryId}){
+  return(
+    <button className="button" onClick={handleButton}>{children}</button>
+  );
+}
+
+function ExCategory({category, handleCategoryDetails, handleExpenseForm, expDetModule, selectedCatId}){
+  const isSelected = selectedCatId === category.id;
+ // console.log(isSelected);
   return(
     <>
-    <li>
-      <img src="https://ui-avatars.com/api/?name=Meat/Fish&size=48" alt="name" />
+    <li className={isSelected? "selected":""}>
+      <img src="https://ui-avatars.com/api/?name=Meat/Fish&size=48"  alt="name" />
       <h3>{category.name}</h3>
 
     {category.current_amount > 0 && (
@@ -156,32 +184,63 @@ function ExCategory({category, handleCategoryDetails, handleExpenseForm, expDetM
       )}
 
 
-      <Button handleButton={handleCategoryDetails}>Details</Button>
-      <Button handleButton={handleExpenseForm}>{expDetModule? "Cancel " : "Add "}Expense</Button>
+      <Button handleButton={()=>handleCategoryDetails(category.id)}>Details</Button>
+      <Button handleButton={()=>handleExpenseForm(category.id)}>{isSelected? "Cancel " : "Add "}Expense</Button>
     </li>
 
     </>
   );
 }
 
-function FormAddCategory({handleModule}){
+function FormAddCategory({handleModule, categoryAddHandle}){
   const modalFor = "category";
+  const [catName, setCatName] = useState("");
+  const [maximum, setMaximum] = useState("");
+  const [imgUrl, setImgUrl] = useState("https://ui-avatars.com/api/?name=");
+  const [status, setStatus] = useState("active");
+
+
+  function handleSubmit(e){
+    e.preventDefault();
+    if(!catName || !maximum || !imgUrl || !status) return;
+
+    const id = crypto.randomUUID();
+    const newCategory = {
+      id: id,
+      name: catName,
+      max_limit: maximum,
+      image: `${imgUrl}${catName}&size=48`,
+      total_expense: 0,
+      current_amount: 0,
+      status: status,
+    }
+
+    categoryAddHandle(newCategory);
+
+    setCatName("");
+    setMaximum("")
+    setImgUrl("https://ui-avatars.com/api/?name=");
+    setStatus("active");
+  }
+
+
+
   return(
     <>
       <ModalHeaderControl handleModule={handleModule} modalFor={modalFor}>Add Category</ModalHeaderControl>
 
-      <form className="form-add-friend">
+      <form className="form-add-friend" onSubmit={handleSubmit}>
         <label>Category Name</label>
-        <input type="text"/>
+        <input type="text" value={catName} onChange={(e)=>setCatName(e.target.value)} />
 
         <label>Maximum Limit</label>
-        <input type="text"/>
+        <input type="text" value={maximum} onChange={(e)=>setMaximum(Number(e.target.value))}/>
 
         <label>Image Url</label>
-        <input type="text"/>
+        <input type="text" value={imgUrl} alt={catName} onChange={(e)=>setImgUrl(e.target.value)}/>
 
         <label>Status</label>
-        <select>
+        <select value={status} onChange={(e)=>setStatus(e.target.value)}>
           <option value="active">Activated</option>
           <option value="deactivate">Deactivate</option>
         </select>
@@ -197,7 +256,11 @@ function FormAddCategory({handleModule}){
 
 
 
-function CategoryDetails({handleModule}){
+function CategoryDetails({handleModule, categoryDetailsId, catrgoriesList}){
+  const categoryDetail = catrgoriesList.find(
+    (data) => data.id === categoryDetailsId
+  );
+
   const modalFor = "categoryDetails";
   return(
     <>
@@ -207,28 +270,29 @@ function CategoryDetails({handleModule}){
           <tbody>
             <tr>
               <td>Image</td>
-              <td><img src="https://ui-avatars.com/api/?name=Vegetable&size=48"/></td>
+              <td><img alt={categoryDetail.image} src={categoryDetail.image}/></td>
             </tr>
             <tr>
               <td>Name</td>
-              <td>Vegitable</td>
+              <td>{categoryDetail.name}</td>
             </tr>
             <tr>
               <td>Maximum Limit</td>
-              <td>5000</td>
+              <td>{categoryDetail.max_limit}</td>
             </tr>
             
             <tr>
               <td>Total Expense</td>
-              <td>3500</td>
+              <td>{categoryDetail.total_expense}</td>
             </tr>
             <tr>
+
               <td>Current Amount</td>
-              <td>1500</td>
+              <td className= {categoryDetail.current_amount >= 0 ? "" : "red" }>{categoryDetail.current_amount}</td>
             </tr>
             <tr>
               <td>Status</td>
-              <td>Active</td>
+              <td className= {categoryDetail.status === 'active' ? "" : "red" }>{categoryDetail.status}</td>
             </tr>
 
           </tbody>
@@ -240,30 +304,67 @@ function CategoryDetails({handleModule}){
 }
 
 
-function ExDetailsForm(){
-  return <>
+function ExDetailsForm({selectedCatId, catrgoriesList, handleTotalExpanse}){
+  
+  const categoryDetail = catrgoriesList.find(
+    (data) => data.id === selectedCatId
+  );
+  const [selectedCategory, setSelectedCategory] = useState(categoryDetail.name);
+  const [remAmount, setRemAmount] = useState(Number(categoryDetail.current_amount));
+  const [expAmount, setExpAmount] = useState("");
+  const orgAmount = Number(categoryDetail.current_amount);
+  
+  let orgExpense = Number(categoryDetail.total_expense);
+
+  function handleCalculation(e) {
+    let newExp = Number(e.target.value); 
+    setExpAmount(newExp);
+    setRemAmount(orgAmount - newExp);
+    
+    if(newExp > orgAmount){
+      setExpAmount(orgAmount);
+      setRemAmount(0);
+      newExp = orgAmount;
+    }
+    orgExpense = orgExpense + newExp;
+
+  }
+
+
+
+  function handleSubmit(e){
+    e.preventDefault();
+    if(!expAmount) return;
+    const newItem = {
+      'total_expense' : expAmount+orgExpense,
+      'rem_amount' : remAmount
+    };
+
+    handleTotalExpanse(newItem);
+    //console.log(newItem);
+  }
+
+  return (
     <div>
-      <form className="form-split-bill">
+      <form className="form-split-bill" onSubmit={handleSubmit} >
         <h2>Add expense details</h2>
-        <label>Select Category</label>
-        <select>
-          <option>1</option>
-          <option>2</option>
-        </select>
+
+        <label>Selected Category</label>
+        <input type="text" value={selectedCategory} disabled />
 
         <label>Amount</label>
-        <input type="text" />
+        <input
+          type="number"
+          value={expAmount}
+          onChange={handleCalculation} 
+        />
 
         <label>Remaining Amount</label>
-        <input type="text" />
+        <input type="text" value={remAmount} disabled />
 
         <Button>Submit</Button>
-
-      </form>;
-
+      </form>
     </div>
-    
-  
-    </>
+  );
   
 }
