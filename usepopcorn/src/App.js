@@ -61,6 +61,16 @@ export default function App() {
         <NumResult movies={movies}/>
       </Navbar>
       <Main>
+        {/* <Box element={<MovieList movies={movies}/>} />
+        <Box element={
+            <>
+              <Summury watched={watched}/>
+              <WatchedList watched={watched}/>
+            </>
+            
+          } /> */}
+
+
         <Box>
           <MovieList movies={movies}/>
         </Box>
@@ -69,6 +79,8 @@ export default function App() {
           <Summury watched={watched}/>
           <WatchedList watched={watched}/>
         </Box>
+
+        
         {/* <WatchedBox>
           <Summury watched={watched}/>
           <WatchedList watched={watched}/>
@@ -104,6 +116,23 @@ function Box( { children }){
     </>
   );
 }
+
+// function Box( { children }){
+//   const [isOpen, setIsOpen] = useState(true);
+//   return (
+//     <>
+//       <div className="box">
+//           <button
+//             className="btn-toggle"
+//             onClick={() => setIsOpen((open) => !open)}
+//           >
+//             {isOpen ? "–" : "+"}
+//           </button>
+//           {isOpen && children}
+//         </div>
+//     </>
+//   );
+// }
 
 function MovieList({ movies }){
   
