@@ -1,4 +1,4 @@
-import { Children, useEffect, useState } from "react";
+import { Children, useState } from "react";
 
 const tempMovieData = [
   {
@@ -47,86 +47,17 @@ const tempWatchedData = [
   },
 ];
 
-
-/*
-AS OF MY UNDERSTANDING:
-01. Props: Like a argument of the function
-02. State: State is like varble of a function. It has local state means local variable and global state means global variable.
-03. useSte as like variable
-04. useEffect as like event handaler machanism
-
-*/
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-const KEY = "339b30d2";
-const tempQuery = "mission impossible";
-
-
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
-
-
-  /*
-  useEffect(function(){
-    console.log("it never execute because there have array but no dependency");
-  }, []);
-
-  useEffect(function(){
-    console.log("then its execute secondly because  without dependency arry");
-  });
-
-  useEffect(function(){
-    console.log("this execute  serial three because of dependecy array");
-  }, [query]);
-
-  
-  console.log("Execute this massenge first beacuse of main app access directly");
-
-  */
-
-
-  useEffect(function(){
-    async function fetchMovie() {
-      try{
-        setIsLoading(true);
-        setError("");
-        const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
-        if(!res.ok)
-          throw new Error("Something went to wrong!!");
-
-        const data = await res.json();
-        if(data.Response === "False") throw new Error("Data not Found");
-        setMovies(data.Search);
-        setIsLoading(false);
-
-      } catch(err){
-        console.log(err.message);
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-      
-    }
-
-    if(query.length < 3){
-      setMovies([]);
-      setError("");
-      return;
-    }
-    fetchMovie();
-  }, [query]);
-
+  const [movies, setMovies] = useState(tempMovieData);
+  const [watched, setWatched] = useState(tempWatchedData);
 
   return (
     <>
       <Navbar>
-        <Search query={query} setQuery={setQuery}/>
+        <Search/>
         <NumResult movies={movies}/>
       </Navbar>
       <Main>
@@ -141,9 +72,7 @@ export default function App() {
 
 
         <Box>
-          {isLoading && !error ? <Loader /> : <MovieList movies={movies}/>}
-          {error && <ErrorMessage message={error} />}
-          
+          <MovieList movies={movies}/>
         </Box>
           
         <Box>
@@ -159,16 +88,6 @@ export default function App() {
       </Main>
     </>
   );
-}
-
-function Loader(){
-  return <p className="loader">Loading...</p>
-}
-
-function ErrorMessage({message}){
-  return <p className="error">
-    {message}
-  </p>
 }
 
 function Main({children}){
@@ -198,6 +117,22 @@ function Box( { children }){
   );
 }
 
+// function Box( { children }){
+//   const [isOpen, setIsOpen] = useState(true);
+//   return (
+//     <>
+//       <div className="box">
+//           <button
+//             className="btn-toggle"
+//             onClick={() => setIsOpen((open) => !open)}
+//           >
+//             {isOpen ? "–" : "+"}
+//           </button>
+//           {isOpen && children}
+//         </div>
+//     </>
+//   );
+// }
 
 function MovieList({ movies }){
   
@@ -348,8 +283,8 @@ function NumResult({movies}){
   );
 }
 
-function Search({query, setQuery}){
-
+function Search(){
+  const [query, setQuery] = useState("");
   return (
     <div>
       <input
