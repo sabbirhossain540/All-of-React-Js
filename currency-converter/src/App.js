@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 
 const currencyList  = [
@@ -63,20 +63,38 @@ export default function App() {
   const [toCurrency, setToCurrency] = useState("");
   const [alterCurrencyList, setAlterCurrencyList] = useState([]);
   const [currentRate, setCurrentRate] = useState(0);
+  const [curFromCurrecyRate, setCurFromCurrencyRate] = useState(0);
+  const [curToCurrecyRate, setCurToCurrencyRate] = useState(0);
+  const [originalAmount, setOriginalAmount] = useState("");
+  const [calculatedValue, setCalculatedValue] = useState(0);
+
+
 
   useEffect(function(){
     setAlterCurrencyList(currencyList.filter(currency => currency.value !== fromCurrency));
   }, [fromCurrency]);
 
+  useEffect(function(){
+    setCalculatedValue(Number(currentRate) * originalAmount);
+  }, [originalAmount])
+
   function handleExcangeCurrencyName(){
     const tempCur = toCurrency;
+    const tempCurRate = curToCurrecyRate;
+
     setToCurrency(fromCurrency);
     setFormCurrency(tempCur);
+    setCurToCurrencyRate(curFromCurrecyRate);
+    setCurFromCurrencyRate(tempCurRate);
+
+    const excangeRateCalculation = Number(curFromCurrecyRate) / Number(curToCurrecyRate);
+    setCurrentRate(excangeRateCalculation.toFixed(2));
+    setCalculatedValue(Number(currentRate) * originalAmount);
+
   }
 
   async function getCurrencyRate(){
-    console.log(fromCurrency);
-    console.log(toCurrency);
+    
     if(toCurrency === ""){
       alert("Something Wrong");
       return;
@@ -86,15 +104,17 @@ export default function App() {
     const data = await res.json();
     const excangeRateCalculation = Number(data.data[fromCurrency].value) / Number(data.data[toCurrency].value);
     setCurrentRate(excangeRateCalculation.toFixed(2));
+    setCurFromCurrencyRate(Number(data.data[fromCurrency].value));
+    setCurToCurrencyRate(Number(data.data[toCurrency].value));
   }
 
   return (
     <>
       {/* <h1>Test</h1> */}
-      {/* <p class="convert">
+      <p className="convert">
           Convert :
-          <input type="number" id="original-currency-amount" placeholder="0" value="1" />
-      </p> */}
+          <input type="number" id="original-currency-amount" placeholder="0" value={originalAmount} onChange={(e)=>setOriginalAmount(e.target.value)} />
+      </p> 
 
         <CurrencyDropdown currencyStatus = {fromCurrency} setCurrency={setFormCurrency} currencyDataSource={currencyList} />
         <Button styleClassid={"exchange"} onHandleCurName={handleExcangeCurrencyName}><i className="fas fa-exchange-alt"></i></Button>
@@ -107,9 +127,9 @@ export default function App() {
 
       <Button styleClassid={"exchange_button"} onHandleCurName={getCurrencyRate}>Exchange my money now!</Button>
 
-      {/* <p id="output-text">
-          <span id="from"></span> converted to <span id="to"></span>
-      </p> */}
+      <p>
+          <span id="from">{fromCurrency}</span> converted to <span id="to">{toCurrency}</span> you converted value is <span id="to">{calculatedValue}</span>
+      </p>
 
     </>
   );
