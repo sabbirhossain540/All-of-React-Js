@@ -1,8 +1,7 @@
-import { Children, useEffect, useRef, useState } from "react";
+import { Children, useEffect, useState } from "react";
 import MovieList from "./components/movie";
 import MovieDetails from "./components/movieDetails";
 import Loader from "./components/Loader";
-import { useMovies } from "./customhook/useMovies";
 
 
 
@@ -16,23 +15,17 @@ AS OF MY UNDERSTANDING:
 
 */
 
-
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 const KEY = "339b30d2";
 
 export default function App() {
-  
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-  const {movies, isLoading, error} = useMovies(query, KEY);
-
-  //const [watched, setWatched] = useState([]);
-  const [watched, setWatched] = useState(function(){
-    const storedValue = localStorage.getItem('watched');
-    return JSON.parse(storedValue);
-  });
 
 
   /*
@@ -63,7 +56,6 @@ export default function App() {
 
   function handleWatchedMovie(movie){
     setWatched((watched)=>[...watched, movie]);
-    //localStorage.setItem('watched', JSON.stringify([...watched, movie]));
   }
 
   function handleDeleteMovie(id){
@@ -72,13 +64,37 @@ export default function App() {
     ))
   }
 
+
   useEffect(function(){
-    localStorage.setItem('watched', JSON.stringify(watched));
+    async function fetchMovie() {
+      try{
+        setIsLoading(true);
+        setError("");
+        const res = await fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=${query}`);
+        if(!res.ok)
+          throw new Error("Something went to wrong!!");
 
-  }, [watched]);
+        const data = await res.json();
+        if(data.Response === "False") throw new Error("Data not Found");
+        setMovies(data.Search);
+        setIsLoading(false);
 
+      } catch(err){
+        console.log(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+      
+    }
 
- 
+    if(query.length < 3){
+      setMovies([]);
+      setError("");
+      return;
+    }
+    fetchMovie();
+  }, [query]);
 
 
   return (
@@ -261,11 +277,6 @@ function NumResult({movies}){
 }
 
 function Search({query, setQuery}){
-  const inputElement = useRef(null);
-
-  useEffect(function(){
-    inputElement.current.focus();
-  }, []);
 
   return (
     <div>
@@ -275,7 +286,6 @@ function Search({query, setQuery}){
           placeholder="Search movies..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          ref={inputElement}
         />
     </div>
   );
